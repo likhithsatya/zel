@@ -1,0 +1,42 @@
+artifact_version: "0.1.0"
+ubuntu:
+  version: "24.04.3"
+  iso_sha256: c3514bf0056180d09376462a7a1b4f213c1d6e8ea67fae5c25099c6fd3d8274b
+  kernel_reference: "6.8.0-147-generic"
+  kernel_policy: distro-managed
+gpu_stack:
+  enabled: false
+  installation_authorized: false
+  validation_status: documentation_supported_candidate_hardware_unvalidated
+  hardware_validation: not_performed
+  oem_qualification: pending
+  driver:
+    package: nvidia-open
+    version: "620.70.06"
+    apt_version: "620.70.06-1ubuntu1"
+    pinning_package: nvidia-driver-pinning-620.70.06
+    pinning_apt_version: "620.70.06-1ubuntu1"
+    kernel_module: open
+  cuda:
+    package: cuda-toolkit-13-5
+    version: "13.5"
+    apt_version: "13.5.0-1"
+  fabric_manager:
+    required: true
+    package: nvidia-fabricmanager
+    version: "2.0.0.rel106"
+    apt_version: "620-1"
+    direct_package: nvidia-fabricmanager-direct
+    direct_version: "2.0.0.rel106-1"
+    driver_library_package: libnvidia-fmdrv1
+    driver_library_version: "620.70.06-1ubuntu1"
+  repository:
+    keyring_version: "1.1-1"
+    keyring_sha256: d2a6b11c096396d868758b86dab1823b25e14d70333f1dfa74da5ddaf6a06dba
+    url: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64
+  references:
+    driver_release_notes: https://docs.nvidia.com/datacenter/tesla/tesla-release-notes-620-70-06/index.html
+    driver_installation_guide: https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/kernel-modules.html
+    cuda_release_notes: https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html
+    cuda_installation_guide: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
+    fabric_manager_guide: https://docs.nvidia.com/datacenter/tesla/fabric-manager-user-guide/index.html

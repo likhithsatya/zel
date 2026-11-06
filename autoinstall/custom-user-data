@@ -1,0 +1,52 @@
+#cloud-config
+autoinstall:
+  version: 1
+  interactive-sections:
+    - identity
+    - storage
+    - ssh
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: b300-01
+    username: digi
+    password: __RANDOM_PASSWORD_HASH__
+  ssh:
+    install-server: true
+    allow-pw: false
+    authorized-keys: []
+  network:
+    version: 2
+    ethernets:
+      pxe:
+        match:
+          macaddress: 90:5A:08:C1:92:62
+        dhcp4: true
+        dhcp6: false
+  storage:
+    layout:
+      name: direct
+  packages:
+    - curl
+    - dmidecode
+    - ethtool
+    - jq
+    - lshw
+    - nvme-cli
+    - openssh-server
+    - pciutils
+    - python3-yaml
+    - smartmontools
+    - traceroute
+    - usbutils
+    - vim-tiny
+    - chrony
+  late-commands:
+    - mkdir -p /target/opt/nvidia-b300-pxe
+    - cp -a /cdrom/nvidia-b300/. /target/opt/nvidia-b300-pxe/
+    - chmod 0755 /target/opt/nvidia-b300-pxe/drivers/*.sh
+    - curtin in-target --target=/target -- /opt/nvidia-b300-pxe/drivers/install-custom-image-stack.sh
+    - curtin in-target --target=/target -- systemctl enable ssh
+    - curtin in-target --target=/target -- install -d -m 0755 /var/lib/nvidia-b300-pxe
+  shutdown: reboot

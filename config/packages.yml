@@ -1,0 +1,15 @@
+base_packages:
+  - curl
+  - dmidecode
+  - ethtool
+  - jq
+  - lshw
+  - nvme-cli
+  - openssh-server
+  - pciutils
+  - python3-yaml
+  - smartmontools
+  - traceroute
+  - usbutils
+  - vim-tiny
+  - chrony

@@ -1,0 +1,9 @@
+mode: nic
+network:
+  addressing: dhcp
+  pxe_base_url: null
+  seed_url: "${tenant-cloudinit-url}"
+  prohibit_local_dhcp_server: true
+provisioning:
+  controller_integration: operator-managed
+  destructive_actions_automated: false

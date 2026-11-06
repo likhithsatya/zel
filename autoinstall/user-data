@@ -1,0 +1,33 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: __INSTALL_HOSTNAME__
+    username: __INSTALL_USERNAME__
+    password: "!"
+  ssh:
+    install-server: true
+    allow-pw: false
+    authorized-keys:
+      - __SSH_AUTHORIZED_KEY__
+  network:
+    version: 2
+    ethernets:
+      pxe:
+        match:
+          macaddress: __INSTALL_NIC_MAC__
+        dhcp4: true
+        dhcp6: false
+  storage:
+    layout:
+      name: direct
+      match:
+        serial: __INSTALL_DISK_SERIAL__
+  packages: [__PACKAGES__]
+  late-commands:
+    - curtin in-target --target=/target -- systemctl enable ssh
+    - curtin in-target --target=/target -- install -d -m 0755 /var/lib/nvidia-b300-pxe
+  shutdown: reboot

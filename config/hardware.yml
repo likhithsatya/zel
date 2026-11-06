@@ -1,0 +1,11 @@
+platform:
+  vendor: Supermicro
+  family: HGX B300
+  reference_model: PIO-422GS-NB3RT
+  reference_pxe_nic: Intel X710
+  dpu_mode: excluded
+installation:
+  network: dhcp
+  disk_layout: direct
+  nic_mac: required-at-deployment
+  disk_serial: required-at-deployment
