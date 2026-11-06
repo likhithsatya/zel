@@ -48,6 +48,7 @@ The POC did not document the install disk serial or SSH public key. The 3.44 TB 
 - Added an Autoinstall late-command that installs the NVIDIA software from Ubuntu/NVIDIA package repositories. The ISO installation needs network access to those repositories.
 - The checked-in `config/versions.yml` leaves ordinary GPU installation gates closed. The custom ISO contains a separate image-local config copy with the gates open so this ISO installs the requested candidate stack.
 - Added a self-hosted GitHub Actions custom ISO workflow labelled `image-builder`, plus a QEMU/OVMF smoke-test script.
+- Added release chunking and reassembly because GitHub limits individual release assets to under 2 GiB. The release includes two numbered ISO parts, the SHA256 sidecar, manifest, and reassembly helper.
 - Added a project history of operational blockers and NICo status to [README.md](../README.md).
 
 ## NVIDIA Candidate Stack
@@ -72,15 +73,17 @@ A previous R595 candidate was also researched: driver/FM `595.112.07` and CUDA 1
 - ISO checksum file: [`artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.sha256`](../artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.sha256).
 - ISO manifest: [`artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.manifest.json`](../artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.manifest.json).
 - NICo PXE bundle: [`artifacts/nvidia-b300-pxe-ubuntu-24.04.3.tar.gz`](../artifacts/nvidia-b300-pxe-ubuntu-24.04.3.tar.gz).
+- Public GitHub Release: [b300-ubuntu-24.04.3-r620-20261106](https://github.com/likhithsatya/zel/releases/tag/b300-ubuntu-24.04.3-r620-20261106), containing the two ISO parts and reassembly/checksum files.
 
-The current ISO SHA256 is `be8d2af941a072a5428c0ab8ed0c49f3eb248672542f56b4127d2ae557db52f9`. The `artifacts/` directory is git-ignored; generated multi-gigabyte artifacts are local until separately uploaded/released.
+The current ISO SHA256 is `be8d2af941a072a5428c0ab8ed0c49f3eb248672542f56b4127d2ae557db52f9`. The `artifacts/` directory is git-ignored to keep multi-gigabyte binaries out of Git history; the ISO is published in the GitHub Release above.
 
 ## Validation Performed
 
-- `make validate test`: passed 6 unit tests, configuration validation, and shell syntax checks.
+- `make validate test`: passed 7 unit tests, configuration validation, and shell syntax checks after release chunking was added.
 - `git diff --check`: passed.
 - Ubuntu checksum manifest signature and ISO checksum: verified.
 - Custom ISO checksum: verified using its sidecar.
+- ISO split/reassembly round-trip test: passed with checksum preservation.
 - `make smoke-custom-iso`: passed. QEMU with OVMF reached the Ubuntu 24.04.3 kernel and the local Autoinstall arguments. No virtual disk was attached.
 - Editor diagnostics: no errors reported at the last diagnostics run.
 
@@ -107,4 +110,4 @@ The QEMU test is only a UEFI boot smoke test. It did not complete an Ubuntu inst
 
 ## Repository State
 
-The work is present in the workspace but was not committed or pushed. The generated ISO and PXE archive are ignored by Git and exist as local artifacts. The validation/build workflows are source-controlled only after the user commits the worktree changes.
+The source and documentation are committed and pushed to `main`. The ISO is published as the GitHub Release listed above. The original ISO and PXE archive remain ignored by Git so multi-gigabyte binaries do not enter Git history.
