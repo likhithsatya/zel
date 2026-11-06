@@ -142,6 +142,22 @@ class BundleTests(unittest.TestCase):
             )
             self.assertEqual(restored.read_bytes(), payload)
 
+    def test_project_report_generates_pdf_and_editable_markdown(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output_dir = Path(temporary)
+            subprocess.run(
+                [sys.executable, str(ROOT / "scripts/generate_project_report.py"), "--output-dir", str(output_dir)],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            pdf = (output_dir / "B300-CUSTOM-OS-V1-REPORT.pdf").read_bytes()
+            markdown = (output_dir / "B300-CUSTOM-OS-V1-REPORT.md").read_text(encoding="utf-8")
+            self.assertTrue(pdf.startswith(b"%PDF-"))
+            self.assertIn("flowchart LR", markdown)
+            self.assertIn("physical b300/gpu validation pending", markdown.lower())
+
     def test_manifest_and_checksum_file_cover_generated_bundle(self):
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "bundle"

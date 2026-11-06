@@ -17,7 +17,7 @@ The guide/report also document Supermicro-specific Redfish behavior and NICo ima
 - `drivers/`: separately gated NVIDIA repository, driver, Fabric Manager, and CUDA installers.
 - `scripts/`: config validation, bundle generation, OS/GPU checks, package helper, and checksums.
 - `.github/workflows/`: configuration validation, PXE bundle packaging, and self-hosted custom ISO builds.
-- `tests/`: offline bundle and manifest tests.
+- `tests/`: bundle, custom ISO, release reassembly, and report-generation tests.
 
 The PXE archive contains the official Ubuntu kernel, initrd, live-server ISO, iPXE entry, seed template, helper scripts, and checksums. Separately, `make custom-iso` builds `artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso`, a bootable UEFI installer ISO with an interactive identity/disk/SSH setup and an Autoinstall late-command that installs the pinned NVIDIA driver, Fabric Manager, and CUDA. It is an installer ISO, not a preinstalled raw/qcow2 disk image. The NVIDIA/Ubuntu package repositories must be reachable during installation. Packer is not used because the documented deployment installs the official Ubuntu live-server system rather than baking a VM disk.
 
@@ -32,9 +32,12 @@ make test
 make bundle-template
 make custom-iso
 make smoke-custom-iso
+make report
 ```
 
 `make custom-iso` verifies Ubuntu's signed media manifest and ISO checksum, then remasters the source ISO while preserving its BIOS/UEFI boot catalog. `make smoke-custom-iso` boots the result under QEMU/OVMF with no disk attached and checks the kernel and local Autoinstall arguments. `scripts/split-release-iso.sh` prepares sub-2-GiB release parts plus checksum, manifest, and reassembly script because GitHub limits individual release assets to less than 2 GiB. The GitHub image workflow requires a self-hosted runner labelled `image-builder`, with `xorriso`, `bsdtar`, `gpgv`, `openssl`, QEMU, OVMF, the Ubuntu archive keyring, and enough free space for the source, remastered ISO, and release parts. Configuration validation remains on a separate hosted runner.
+
+`make report` regenerates the editable [v1 build report](docs/B300-CUSTOM-OS-V1-REPORT.md) and [architecture PDF](docs/B300-CUSTOM-OS-V1-REPORT.pdf) using the pinned ReportLab dependency.
 
 `make bundle-template` creates a **non-deployable template artifact** under `artifacts/`; endpoint, NIC, disk, host, user, and SSH-key values remain placeholders. To render a site-specific bundle, provide values out of band:
 

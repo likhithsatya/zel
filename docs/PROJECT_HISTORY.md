@@ -49,6 +49,7 @@ The POC did not document the install disk serial or SSH public key. The 3.44 TB 
 - The checked-in `config/versions.yml` leaves ordinary GPU installation gates closed. The custom ISO contains a separate image-local config copy with the gates open so this ISO installs the requested candidate stack.
 - Added a self-hosted GitHub Actions custom ISO workflow labelled `image-builder`, plus a QEMU/OVMF smoke-test script.
 - Added release chunking and reassembly because GitHub limits individual release assets to under 2 GiB. The release includes two numbered ISO parts, the SHA256 sidecar, manifest, and reassembly helper.
+- Added `scripts/generate_project_report.py` and a `make report` target, producing an editable v1 report and a two-page architecture PDF; the PDF diagram distinguishes the custom ISO flow from the reference NICo PXE flow.
 - Added a project history of operational blockers and NICo status to [README.md](../README.md).
 
 ## NVIDIA Candidate Stack
@@ -74,12 +75,15 @@ A previous R595 candidate was also researched: driver/FM `595.112.07` and CUDA 1
 - ISO manifest: [`artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.manifest.json`](../artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.manifest.json).
 - NICo PXE bundle: [`artifacts/nvidia-b300-pxe-ubuntu-24.04.3.tar.gz`](../artifacts/nvidia-b300-pxe-ubuntu-24.04.3.tar.gz).
 - Public GitHub Release: [b300-ubuntu-24.04.3-r620-20261106](https://github.com/likhithsatya/zel/releases/tag/b300-ubuntu-24.04.3-r620-20261106), containing the two ISO parts and reassembly/checksum files.
+- Editable build report: [`docs/B300-CUSTOM-OS-V1-REPORT.md`](B300-CUSTOM-OS-V1-REPORT.md).
+- Architecture PDF: [`docs/B300-CUSTOM-OS-V1-REPORT.pdf`](B300-CUSTOM-OS-V1-REPORT.pdf).
 
 The current ISO SHA256 is `be8d2af941a072a5428c0ab8ed0c49f3eb248672542f56b4127d2ae557db52f9`. The `artifacts/` directory is git-ignored to keep multi-gigabyte binaries out of Git history; the ISO is published in the GitHub Release above.
 
 ## Validation Performed
 
-- `make validate test`: passed 7 unit tests, configuration validation, and shell syntax checks after release chunking was added.
+- `make validate test`: passed 8 unit tests, configuration validation, and shell syntax checks after report generation was added.
+- `make report`: generated the editable Markdown and two-page PDF successfully; both pages were visually inspected.
 - `git diff --check`: passed.
 - Ubuntu checksum manifest signature and ISO checksum: verified.
 - Custom ISO checksum: verified using its sidecar.

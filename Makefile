@@ -1,4 +1,4 @@
-.PHONY: validate test bundle-template image custom-iso smoke-custom-iso
+.PHONY: validate test bundle-template image custom-iso smoke-custom-iso report
 
 validate:
 	python scripts/validate_config.py
@@ -18,3 +18,6 @@ custom-iso:
 
 smoke-custom-iso:
 	bash scripts/smoke-test-custom-iso.sh artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso
+
+report:
+	python scripts/generate_project_report.py
