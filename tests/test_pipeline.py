@@ -114,6 +114,34 @@ class BundleTests(unittest.TestCase):
         self.assertEqual(grub.count(" ---"), 2)
         self.assertNotRegex(grub, r"(?m)^\s*grub_platform\s*$")
 
+    def test_release_iso_split_and_reassembly_preserves_checksum(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            iso = root / "nvidia-b300-ubuntu-24.04.3-r620.iso"
+            payload = bytes(range(256)) * 32
+            iso.write_bytes(payload)
+            (root / f"{iso.name}.sha256").write_text(
+                f"{hashlib.sha256(payload).hexdigest()}  {iso.name}\n", encoding="utf-8"
+            )
+            (root / f"{iso.name}.manifest.json").write_text("{}\n", encoding="utf-8")
+            assets = root / "assets"
+            subprocess.run(
+                ["bash", str(ROOT / "scripts/split-release-iso.sh"), str(iso), str(assets)],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            restored = root / "restored.iso"
+            subprocess.run(
+                ["bash", str(assets / "assemble-release-iso.sh"), str(assets), str(restored)],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(restored.read_bytes(), payload)
+
     def test_manifest_and_checksum_file_cover_generated_bundle(self):
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "bundle"

@@ -34,7 +34,7 @@ make custom-iso
 make smoke-custom-iso
 ```
 
-`make custom-iso` verifies Ubuntu's signed media manifest and ISO checksum, then remasters the source ISO while preserving its BIOS/UEFI boot catalog. `make smoke-custom-iso` boots the result under QEMU/OVMF with no disk attached and checks the kernel and local Autoinstall arguments. The GitHub image workflow requires a self-hosted runner labelled `image-builder`, with `xorriso`, `bsdtar`, `gpgv`, `openssl`, QEMU, OVMF, the Ubuntu archive keyring, and enough free space for multiple 3+ GB images. Configuration validation remains on a separate hosted runner.
+`make custom-iso` verifies Ubuntu's signed media manifest and ISO checksum, then remasters the source ISO while preserving its BIOS/UEFI boot catalog. `make smoke-custom-iso` boots the result under QEMU/OVMF with no disk attached and checks the kernel and local Autoinstall arguments. `scripts/split-release-iso.sh` prepares sub-2-GiB release parts plus checksum, manifest, and reassembly script because GitHub limits individual release assets to less than 2 GiB. The GitHub image workflow requires a self-hosted runner labelled `image-builder`, with `xorriso`, `bsdtar`, `gpgv`, `openssl`, QEMU, OVMF, the Ubuntu archive keyring, and enough free space for the source, remastered ISO, and release parts. Configuration validation remains on a separate hosted runner.
 
 `make bundle-template` creates a **non-deployable template artifact** under `artifacts/`; endpoint, NIC, disk, host, user, and SSH-key values remain placeholders. To render a site-specific bundle, provide values out of band:
 

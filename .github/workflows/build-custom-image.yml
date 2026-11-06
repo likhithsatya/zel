@@ -24,13 +24,11 @@ jobs:
       - run: python -m unittest discover -s tests -v
       - run: make custom-iso
       - run: make smoke-custom-iso
+      - run: bash scripts/split-release-iso.sh artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso artifacts/release-assets
       - uses: actions/upload-artifact@v4
         with:
           name: nvidia-b300-ubuntu-24.04.3-r620
-          path: |
-            artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso
-            artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.sha256
-            artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.manifest.json
+          path: artifacts/release-assets/*
           if-no-files-found: error
           retention-days: 30
       - name: Publish tagged ISO
@@ -38,8 +36,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
-          gh release create "$GITHUB_REF_NAME"
-          artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso
-          artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.sha256
-          artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.manifest.json
-          --generate-notes
+          gh release create "$GITHUB_REF_NAME" artifacts/release-assets/* --generate-notes
