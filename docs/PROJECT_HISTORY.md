@@ -48,6 +48,7 @@ The POC did not document the install disk serial or SSH public key. The 3.44 TB 
 - Added an Autoinstall late-command that installs the NVIDIA software from Ubuntu/NVIDIA package repositories. The ISO installation needs network access to those repositories.
 - The checked-in `config/versions.yml` leaves ordinary GPU installation gates closed. The custom ISO contains a separate image-local config copy with the gates open so this ISO installs the requested candidate stack.
 - Added a self-hosted GitHub Actions custom ISO workflow labelled `image-builder`, plus a QEMU/OVMF smoke-test script.
+- The custom ISO was built and smoke-tested locally; the self-hosted GitHub image workflow is configured but has not been run.
 - Added release chunking and reassembly because GitHub limits individual release assets to under 2 GiB. The release includes two numbered ISO parts, the SHA256 sidecar, manifest, and reassembly helper.
 - Added `scripts/generate_project_report.py` and a `make report` target, producing an editable v1 report and a two-page architecture PDF; the PDF diagram distinguishes the custom ISO flow from the reference NICo PXE flow.
 - Added a project history of operational blockers and NICo status to [README.md](../README.md).
@@ -98,6 +99,11 @@ The QEMU test is only a UEFI boot smoke test. It did not complete an Ubuntu inst
 - No BMC operation, NICo registration, disk wipe, physical installation, or server reboot was performed.
 - No full VM installation/package-download test was performed. The B300 VLAN's access to Ubuntu/NVIDIA repositories is unverified; interrupted package downloads can leave an incomplete install.
 - The exact Supermicro OEM driver qualification and Secure Boot/MOK enrollment procedure remain unverified.
+- The NICo tracker says BIOS setup credentials are held by NICo Vault and lock-down settings were applied. Authorized password retrieval and approval of the selected ISO boot path remain to be confirmed; no lock-down bypass is authorized.
+- The tracker reports brief BMC network drops. A resulting interruption to BMC virtual-media boot is a plausible risk, not a confirmed failure; verify media-session behavior if using that path.
+- A rollback/recovery plan has not been agreed or tested. Define console/recovery access, an approved reimage/NICo reprovision route, and how to return the host to NICo `Ready` if installation fails.
+- Likhith and Sai Rishith are proposed supervised test operators; Chakra/machine-owner approval and the actual date/window are pending.
+- The repository and release are private; only authorized collaborators can view/download them. The custom self-hosted image workflow has not been run on GitHub; its runner should remain isolated and restricted to trusted maintainers.
 - The custom ISO bypasses NICo during boot. The POC machine already has NICo state/instance records; coordinate with the NICo owner and reconcile those records after any reinstall.
 - Fresh written disk-wipe approval and an install window are still required. Supervised console interaction is needed to select the intended disk.
 - The current image installs the R620 candidate; do not describe it as GPU-validated or production-qualified. GPU checks must run on the physical B300 after installation.
@@ -107,11 +113,12 @@ The QEMU test is only a UEFI boot smoke test. It did not complete an Ubuntu inst
 ## Suggested Next Actions
 
 1. Ask Chakra/Supermicro to confirm the driver branch, Secure Boot/MOK steps, and exact platform support for PIO-422GS-NB3RT. Decide whether to retain R620 or build the R595 alternative.
-2. Verify outbound repository access from VLAN 30 or provide an approved mirror/proxy.
-3. Coordinate with Vinod/NICo before bypassing its existing records and obtain fresh written wipe approval and a time window.
-4. Verify the ISO SHA256 after transfer, then perform a supervised install with console access and careful disk selection.
-5. After first boot, validate Ubuntu/SSH and installer logs; only then run GPU checks on the physical B300. Do not count VM smoke tests as GPU validation.
+2. Verify outbound repository access from VLAN 30 or provide an approved mirror/proxy; confirm intended testers can access the private release.
+3. Coordinate with Vinod/NICo on BIOS Vault access, current lock-down settings, BMC-media behavior, NICo record reconciliation, and fresh written wipe approval/time window.
+4. Agree a rollback/recovery path and assign the supervised test owner/window (proposed: Likhith and Sai Rishith, with Chakra/machine-owner approval).
+5. Verify the ISO SHA256 after transfer, install under console supervision with careful disk selection, and record installer logs.
+6. After first boot, validate Ubuntu/SSH and installer logs; only then run GPU checks on the physical B300. Do not count VM smoke tests as GPU validation.
 
 ## Repository State
 
-The source and documentation are committed and pushed to `main`. The ISO is published as the GitHub Release listed above. The original ISO and PXE archive remain ignored by Git so multi-gigabyte binaries do not enter Git history.
+The source and documentation are committed and pushed to `main`. The ISO and report are published as GitHub Release assets. The repository and release are private, so recipients need collaborator access. The original ISO and PXE archive remain ignored by Git so multi-gigabyte binaries do not enter Git history.

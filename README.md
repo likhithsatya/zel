@@ -21,6 +21,8 @@ The guide/report also document Supermicro-specific Redfish behavior and NICo ima
 
 The PXE archive contains the official Ubuntu kernel, initrd, live-server ISO, iPXE entry, seed template, helper scripts, and checksums. Separately, `make custom-iso` builds `artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso`, a bootable UEFI installer ISO with an interactive identity/disk/SSH setup and an Autoinstall late-command that installs the pinned NVIDIA driver, Fabric Manager, and CUDA. It is an installer ISO, not a preinstalled raw/qcow2 disk image. The NVIDIA/Ubuntu package repositories must be reachable during installation. Packer is not used because the documented deployment installs the official Ubuntu live-server system rather than baking a VM disk.
 
+The GitHub repository and release are private; only repository collaborators can access them. Add each intended tester (including Chakra and Rishith) as a collaborator before sharing the release link. Keep the self-hosted `image-builder` runner isolated and restrict its use to trusted maintainers/workflows.
+
 ## Local use
 
 Use Python 3.12+ and Bash. In Codespaces, install the pinned Python dependency:
@@ -116,12 +118,16 @@ CUDA's metapackage is pinned, but its repository dependencies use version ranges
 
 The custom ISO has identity, storage, and SSH as interactive Autoinstall sections. The installer uses the POC X710 MAC (`90:5A:08:C1:92:62`) with DHCP, defaults the account labels to `b300-01`/`digi`, and lets the operator choose the actual local password, installation disk, and SSH configuration. The build embeds only a per-build random password hash; no SSH key or reusable credential is baked in. If no key is entered, SSH password login remains disabled, so use the local console to add an authorized key after installation.
 
-The late-command installs the R620 driver, Fabric Manager, and CUDA from NVIDIA's Ubuntu 24.04 repository. The target must have working DHCP and network access to both Ubuntu and NVIDIA package repositories during installation. Confirm the system's Secure Boot state and an approved DKMS/MOK enrollment procedure before use; that flow is not validated here. The ISO does not need NICo registration or the temporary `.99:8090` host; boot/media attachment is handled by the operator's chosen method.
+The late-command installs the R620 driver, Fabric Manager, and CUDA from NVIDIA's Ubuntu 24.04 repository. The target must have working DHCP and network access to both Ubuntu and NVIDIA package repositories during installation. Confirm the system's Secure Boot state and an approved DKMS/MOK enrollment procedure before use; that flow is not validated here. The NICo tracker says BIOS setup credentials are held by NICo Vault and lock-down settings were applied. Obtain access through the authorized Vault custodian and confirm the selected ISO boot method is permitted; do not bypass lock-down or make unapproved firmware changes. The ISO does not need NICo registration or the temporary `.99:8090` host; boot/media attachment is handled by the operator's chosen method.
 
-1. Verify the ISO with `sha256sum -c artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.sha256`.
-2. Obtain fresh written approval for the B300 disk wipe and installation window. The Autoinstall storage screen is interactive, so confirm the intended disk there before continuing.
-3. Boot the ISO using the approved method. At the installer, set the account/password, select the intended target disk, and configure the SSH public key. Keep network connected through the NVIDIA package installation and reboot.
-4. Review the installer logs for driver, Fabric Manager, and CUDA package failures. After first boot, run `scripts/validate-os.sh` and `scripts/validate-gpu.sh` on the actual B300. A successful ISO build or VM boot is not GPU validation.
+If booting from BMC virtual media, verify that the media session survives the install reboot and any link interruption. The tracker reports brief BMC network drops; the possibility that they interrupt virtual media is a risk to check, not a confirmed failure.
+
+1. Verify the ISO with `sha256sum -c artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.sha256` after transfer.
+2. Likhith and Sai Rishith are the proposed supervised test operators; confirm the approach and schedule with Chakra and the machine owner. Obtain fresh written disk-wipe approval and an install window.
+3. Before boot, confirm the NICo Vault credential custodian, BIOS setup password access, and that existing lock-down/boot settings permit the approved ISO boot path. Do not bypass lock-down or make unapproved firmware changes.
+4. If using BMC virtual media, confirm it remains connected over reboot; the reported link-drop risk is an inference that must be checked. Agree on a rollback plan covering console/recovery access, an approved reimage or NICo reprovision route, and how to reconcile the host to NICo `Ready` if installation fails. This rollback has not been tested.
+5. At the installer, set the account/password, select and verify the intended target disk, and configure the SSH public key. Keep network connected through the NVIDIA package installation and reboot.
+6. Review installer logs for driver, Fabric Manager, and CUDA package failures. After first boot, run `scripts/validate-os.sh` and `scripts/validate-gpu.sh` on the actual B300. A successful ISO build or VM boot is not GPU validation.
 
 ## Hardware validation procedure
 

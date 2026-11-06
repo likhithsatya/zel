@@ -2,6 +2,7 @@
 """Generate the editable v1 project report and architecture PDF."""
 
 import argparse
+from datetime import datetime, timezone
 from pathlib import Path
 import re
 
@@ -28,6 +29,7 @@ SUBTITLE = "Version 1 build, architecture, and test report"
 RELEASE_URL = "https://github.com/likhithsatya/zel/releases/tag/b300-ubuntu-24.04.3-r620-20261106"
 ISO_NAME = "nvidia-b300-ubuntu-24.04.3-r620.iso"
 ISO_SHA256 = "be8d2af941a072a5428c0ab8ed0c49f3eb248672542f56b4127d2ae557db52f9"
+REPORT_DATE = datetime.now(timezone.utc).strftime("%Y-%m-%d UTC")
 
 SECTIONS = [
     ("heading", "Executive summary"),
@@ -74,16 +76,18 @@ SECTIONS = [
         "NVIDIA's R620 release notes mention HGX B300 and Ubuntu 24.04, and the Fabric Manager "
         "guide documents HGX B300 NVSwitch topology and independent FM versioning starting at "
         "driver release 620. These references do not constitute qualification of the exact "
-        "Supermicro PIO-422GS-NB3RT. NVIDIA's R595 branch is an alternative candidate, not the "
-        "stack in this V1 ISO.",
+        "Supermicro PIO-422GS-NB3RT. R620.70.06 was released on 2026-11-04 and is a new branch. "
+        "NVIDIA's R595 branch (595.112.07, released 2026-10-22) is an older alternative, not the "
+        "stack in this V1 ISO; neither branch is OEM-qualified for this exact server.",
     ),
     ("heading", "Test evidence"),
     (
         "bullets",
         [
-            "7 local unit tests pass, including Autoinstall/GRUB behavior, release split/reassembly, manifest integrity, and default installer gates.",
+            "8 local unit tests pass, including Autoinstall/GRUB behavior, release split/reassembly, report generation, manifest integrity, and default installer gates.",
             "Ubuntu source signature and ISO checksum verified; custom ISO checksum verified.",
             "QEMU with OVMF boots the ISO to Ubuntu 24.04.3 kernel and confirms local Autoinstall arguments. No virtual disk was attached.",
+            "The custom ISO was built locally. The self-hosted GitHub image workflow is configured but has not yet been run.",
             "No complete VM installation, NVIDIA package download/install, physical B300 install, or GPU/NVSwitch validation has been performed.",
         ],
     ),
@@ -93,13 +97,17 @@ SECTIONS = [
         f"ISO: {ISO_NAME}. SHA256: {ISO_SHA256}. GitHub Release: {RELEASE_URL}. "
         "The ISO is split into two downloadable parts because GitHub limits individual release "
         "assets to under 2 GiB. Download every release asset into one directory and run "
-        "bash assemble-release-iso.sh . to reconstruct and verify the ISO.",
+        "bash assemble-release-iso.sh . to reconstruct and verify the ISO. The GitHub repository "
+        "is private, so release access is limited to repository collaborators.",
     ),
     ("heading", "Before physical testing"),
     (
         "numbered",
         [
-            "Confirm fresh written disk-wipe approval and an install window; the previous POC approval does not cover this run.",
+            "Get fresh written disk-wipe approval and a dated install window; the previous POC approval does not cover this run. Likhith and Sai Rishith are the proposed test operators; schedule is pending Chakra/owner confirmation.",
+            "Confirm with the NICo credential custodian how the BIOS setup password is obtained and whether current lockdown/boot settings permit the selected ISO boot method. Do not bypass lockdown or change firmware settings without authorization.",
+            "If using BMC virtual media, verify the media session survives reboot/link interruptions. The tracker reports brief BMC network drops; that this could interrupt virtual-media boot is a risk to check, not a proven failure.",
+            "Agree on rollback before starting: console access, recovery media or approved NICo reprovisioning route, and how to reconcile the host back to NICo Ready. No rollback has been tested.",
             "Select and verify the intended disk at the interactive installer storage screen; supervise the console.",
             "Check Secure Boot/MOK requirements and confirm VLAN 30 can reach Ubuntu and NVIDIA package repositories or an approved mirror.",
             "Coordinate the NICo record update because this ISO boot path bypasses NICo; no BMC/NICo action was performed by this project.",
@@ -120,7 +128,7 @@ def markdown_source() -> str:
     lines = [
         f"# {TITLE} — {SUBTITLE}",
         "",
-        "**Prepared:** 2026-11-06",
+        f"**Generated:** {REPORT_DATE}",
         "**Status:** Prepared for supervised test; physical B300/GPU validation pending.",
         "",
         "```mermaid",
@@ -229,7 +237,7 @@ def build_pdf(path: Path):
         Spacer(1, 0.1 * inch),
         Paragraph(TITLE, styles["ReportTitle"]),
         Paragraph(SUBTITLE, styles["ReportSubtitle"]),
-        Paragraph("Prepared 2026-11-06 &nbsp; | &nbsp; Prepared for supervised test &nbsp; | &nbsp; Physical B300 validation pending", styles["BodySmall"]),
+        Paragraph(f"Generated {REPORT_DATE} &nbsp; | &nbsp; Prepared for supervised test &nbsp; | &nbsp; Physical B300 validation pending", styles["BodySmall"]),
         Spacer(1, 5),
     ]
     for kind, content in SECTIONS:
