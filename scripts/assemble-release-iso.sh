@@ -10,9 +10,14 @@ if [[ ! -d "$1" ]]; then
   exit 2
 fi
 asset_dir=$(cd "$1" && pwd -P)
-iso_name=nvidia-b300-ubuntu-24.04.3-r620.iso
+checksum_files=("$asset_dir"/*.iso.sha256)
+if [[ ${#checksum_files[@]} -ne 1 || ! -f "${checksum_files[0]}" ]]; then
+  printf 'Expected exactly one ISO SHA256 file in %s\n' "$asset_dir" >&2
+  exit 2
+fi
+checksum_file=${checksum_files[0]}
+iso_name=$(basename "$checksum_file" .sha256)
 output=${2:-"$asset_dir/$iso_name"}
-checksum_file="$asset_dir/$iso_name.sha256"
 parts=()
 for part in "$asset_dir/$iso_name".part[0-9][0-9]; do
   if [[ -f "$part" ]]; then
