@@ -133,4 +133,4 @@ The QEMU test is only a UEFI boot smoke test. It did not complete an Ubuntu inst
 
 ## Repository State
 
-The original ISO/report source is committed and pushed to `main`. The DigiPowerX banner/Packer updates are in the current worktree and are not yet committed. The repository is public as of 2026-11-09. The DigiPowerX installer ISO and updated qcow2 are published in separate GitHub prereleases. The qcow2 first-boot NVIDIA install remains untested. Generated images are ignored by Git.
+The DigiPowerX branding and report updates are committed and pushed to `main` as `c8f2956`. Follow-up release-assembler/test changes and supplemental Packer notes remain workspace-only and are not part of that commit. The repository is public as of 2026-11-09. The DigiPowerX installer ISO and updated qcow2 are published in separate GitHub prereleases. The qcow2 first-boot NVIDIA install remains untested. Generated images are ignored by Git.
