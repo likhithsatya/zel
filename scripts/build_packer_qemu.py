@@ -58,7 +58,13 @@ def prepare_context(context: Path) -> Path:
         "install-custom-image-stack.sh",
     ):
         shutil.copy2(ROOT / "drivers" / name, payload / "drivers" / name)
-    for name in ("validate-os.sh", "packer-provision-qemu.sh", "packer-cleanup-qemu.sh", "packer-firstboot-nvidia.sh"):
+    for name in (
+        "validate-os.sh",
+        "motd-digipowerx.sh",
+        "packer-provision-qemu.sh",
+        "packer-cleanup-qemu.sh",
+        "packer-firstboot-nvidia.sh",
+    ):
         shutil.copy2(ROOT / "scripts" / name, payload / "scripts" / name)
     return payload
 

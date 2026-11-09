@@ -9,6 +9,7 @@ payload=/opt/nvidia-b300-qemu/payload
 install -d -m 0755 "$payload"
 cp -a "$staged"/. "$payload"/
 chmod 0755 "$payload"/drivers/*.sh "$payload"/scripts/*.sh
+install -m 0755 "$payload/scripts/motd-digipowerx.sh" /etc/update-motd.d/10-digipowerx
 
 mapfile -t base_packages < <(python3 - "$payload/config/packages.yml" <<'PY'
 import sys

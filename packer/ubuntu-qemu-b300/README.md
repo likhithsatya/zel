@@ -17,7 +17,7 @@ make packer-qemu
 
 The build clones the signed, date-pinned Ubuntu 24.04 cloud image in `config/versions.yml` (or accepts `--source-image`), checks its SHA256, provisions base packages and the NVIDIA first-boot systemd unit, then removes the temporary build account and resets cloud-init state. The Packer build password is generated for the build and is not embedded in the resulting image. The NVIDIA stack is downloaded/installed on the image's first boot, not inside Packer's SSH provisioning session.
 
-The default output is `artifacts/packer-qemu-b300/nvidia-b300-ubuntu-24.04.3-r620.qcow2` with SHA256 and JSON manifest files. V1 was built locally and copied to that path; its checksum and `qemu-img check` pass. The first-boot systemd install unit and GPU stack have not yet been successfully tested by booting this qcow2. Override local resources/output with:
+The default output is `artifacts/packer-qemu-b300/nvidia-b300-ubuntu-24.04.3-r620.qcow2` with SHA256 and JSON manifest files. V1 was built locally and copied to that path; its checksum and `qemu-img check` pass. The qcow2, SHA256, and manifest are also in the [Packer first-boot candidate prerelease](https://github.com/likhithsatya/zel/releases/tag/b300-qemu-qcow2-firstboot-candidate-20261109). The first-boot systemd install unit and GPU stack have not yet been successfully tested by booting this qcow2. Override local resources/output with:
 
 ```bash
 python scripts/build_packer_qemu.py \
@@ -30,6 +30,6 @@ python scripts/build_packer_qemu.py \
 
 The artifact is a generalized cloud-init image. The Packer build account is locked/removed before shutdown; the consumer must provide first-boot cloud-init user data (for example, a VM platform metadata service or a NoCloud seed) that creates the test user and SSH access. Do not reuse the Packer build credentials.
 
-The qcow2 build and image integrity check have succeeded. The NVIDIA first-boot unit has not yet been boot-tested. This artifact can test the generalized OS image and (after first boot) package installation in a VM. It has no HGX B300 GPU/NVSwitch, so it cannot validate GPU detection, Fabric Manager operation on NVSwitch, or the exact Supermicro platform. The custom installer ISO remains the separate supervised physical-install artifact.
+The DigiPowerX-branded qcow2 build and image integrity check have succeeded; its MOTD reports OS, kernel, uptime, CPU, memory, root disk, IP, and best-effort NVIDIA status. The NVIDIA first-boot unit has not yet been boot-tested. This artifact can test the generalized OS image and (after first boot) package installation in a VM. It has no HGX B300 GPU/NVSwitch, so it cannot validate GPU detection, Fabric Manager operation on NVSwitch, or the exact Supermicro platform. The custom installer ISO remains the separate supervised physical-install artifact.
 
 The NVIDIA package repositories must be reachable on first boot. A fully offline package repository is not part of this Packer/QEMU target yet. CUDA dependency versions are still resolved by repository version ranges, so the output is version-targeted, not a fully locked dependency snapshot. The current qcow2 was built and its structure/checksum verified, but the first-boot NVIDIA service has not yet been run in a VM.

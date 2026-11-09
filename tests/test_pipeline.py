@@ -109,7 +109,7 @@ class BundleTests(unittest.TestCase):
             '}\n'
         )
         grub = patch_grub_config(source)
-        self.assertIn('menuentry "Install Ubuntu 24.04.3 with NVIDIA data-center software"', grub)
+        self.assertIn('menuentry "Install DigiPowerX Ubuntu 24.04.3 with NVIDIA data-center software"', grub)
         self.assertEqual(grub.count(r"ds=nocloud\;s=/cdrom/autoinstall/"), 2)
         self.assertEqual(grub.count(" ---"), 2)
         self.assertNotRegex(grub, r"(?m)^\s*grub_platform\s*$")

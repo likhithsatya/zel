@@ -84,7 +84,7 @@ def prepare_overlay(overlay: Path, password_hash: str) -> None:
         "install-custom-image-stack.sh",
     ):
         shutil.copy2(ROOT / "drivers" / name, payload_dir / "drivers" / name)
-    for name in ("validate-os.sh", "validate-gpu.sh"):
+    for name in ("validate-os.sh", "validate-gpu.sh", "motd-digipowerx.sh"):
         shutil.copy2(ROOT / "scripts" / name, payload_dir / "scripts" / name)
 
 
@@ -107,7 +107,7 @@ def patch_grub_config(source: str) -> str:
         if line.startswith('menuentry "Try or Install Ubuntu Server"'):
             lines[index] = line.replace(
                 'menuentry "Try or Install Ubuntu Server"',
-                'menuentry "Install Ubuntu 24.04.3 with NVIDIA data-center software"',
+                'menuentry "Install DigiPowerX Ubuntu 24.04.3 with NVIDIA data-center software"',
                 1,
             )
             break

@@ -46,6 +46,7 @@ autoinstall:
     - mkdir -p /target/opt/nvidia-b300-pxe
     - cp -a /cdrom/nvidia-b300/. /target/opt/nvidia-b300-pxe/
     - chmod 0755 /target/opt/nvidia-b300-pxe/drivers/*.sh
+    - curtin in-target --target=/target -- install -m 0755 /opt/nvidia-b300-pxe/scripts/motd-digipowerx.sh /etc/update-motd.d/10-digipowerx
     - curtin in-target --target=/target -- /opt/nvidia-b300-pxe/drivers/install-custom-image-stack.sh
     - curtin in-target --target=/target -- systemctl enable ssh
     - curtin in-target --target=/target -- install -d -m 0755 /var/lib/nvidia-b300-pxe

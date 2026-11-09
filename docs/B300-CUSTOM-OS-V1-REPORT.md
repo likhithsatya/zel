@@ -1,6 +1,6 @@
-# HGX B300 Custom Ubuntu Installer — Version 1 build, architecture, and test report
+# DigiPowerX HGX B300 Custom Ubuntu Installer — Version 1 build, architecture, and test report
 
-**Generated:** 2026-11-06 UTC
+**Generated:** 2026-11-09 UTC
 **Status:** Prepared for supervised test; physical B300/GPU validation pending.
 
 ```mermaid
@@ -23,6 +23,7 @@ The report shows two distinct paths. The original POC path is NICo with UEFI HTT
 
 - Ubuntu 24.04.3 source ISO verified against Ubuntu's signed SHA256 manifest.
 - Custom ISO remaster preserving BIOS and UEFI boot metadata, with local NoCloud seed and Autoinstall arguments.
+- DigiPowerX login banner showing OS, kernel, uptime, CPU/RAM, root disk, address, and best-effort NVIDIA status.
 - Interactive identity, disk/storage, and SSH setup; no disk serial or SSH key is baked into the image.
 - Late-command installs the pinned candidate NVIDIA stack from Ubuntu/NVIDIA repositories; network access is required during installation.
 - Build scripts, self-hosted GitHub Actions workflow, QEMU/OVMF smoke test, checksum/manifest, and GitHub release packaging split under the per-asset size limit.
@@ -40,15 +41,16 @@ NVIDIA's R620 release notes mention HGX B300 and Ubuntu 24.04, and the Fabric Ma
 
 ## Test evidence
 
-- 8 local unit tests pass, including Autoinstall/GRUB behavior, release split/reassembly, report generation, manifest integrity, and default installer gates.
+- 13 local unit tests pass, including Autoinstall/GRUB behavior, DigiPowerX branding, Packer payload configuration, release split/reassembly, report generation, manifest integrity, and installer gates.
 - Ubuntu source signature and ISO checksum verified; custom ISO checksum verified.
 - QEMU with OVMF boots the ISO to Ubuntu 24.04.3 kernel and confirms local Autoinstall arguments. No virtual disk was attached.
 - The custom ISO was built locally. The self-hosted GitHub image workflow is configured but has not yet been run.
+- A separate 64-GiB Packer/QEMU qcow2 was rebuilt with the DigiPowerX MOTD and passes qemu-img integrity/checksum checks. Its NVIDIA first-boot systemd install and cloud-init user-data path remain untested; see https://github.com/likhithsatya/zel/releases/tag/b300-qemu-qcow2-firstboot-candidate-20261109.
 - No complete VM installation, NVIDIA package download/install, physical B300 install, or GPU/NVSwitch validation has been performed.
 
 ## Release
 
-ISO: nvidia-b300-ubuntu-24.04.3-r620.iso. SHA256: be8d2af941a072a5428c0ab8ed0c49f3eb248672542f56b4127d2ae557db52f9. GitHub Release: https://github.com/likhithsatya/zel/releases/tag/b300-ubuntu-24.04.3-r620-20261106. The ISO is split into two downloadable parts because GitHub limits individual release assets to under 2 GiB. Download every release asset into one directory and run bash assemble-release-iso.sh . to reconstruct and verify the ISO. The GitHub repository is private, so release access is limited to repository collaborators.
+ISO: digipowerx-b300-ubuntu-24.04.3-r620.iso. SHA256: 3f3ebbaaea3a4133d38f1635d13e0cb74e9c954a97ae25e0bbabec86ac3947ae. GitHub Release: https://github.com/likhithsatya/zel/releases/tag/digipowerx-b300-custom-ubuntu-24.04.3-r620-20261109. The ISO is split into two downloadable parts because GitHub limits individual release assets to under 2 GiB. Download every release asset into one directory and run bash assemble-release-iso.sh . to reconstruct and verify the ISO. The GitHub repository is public as of 2026-11-09. A separate Packer/QEMU qcow2 first-boot candidate is built; it is not a bare-metal installer and its NVIDIA first-boot service remains unvalidated.
 
 ## Before physical testing
 
@@ -63,4 +65,4 @@ ISO: nvidia-b300-ubuntu-24.04.3-r620.iso. SHA256: be8d2af941a072a5428c0ab8ed0c49
 
 ## Scope boundary
 
-This is an installer ISO, not a preinstalled raw/qcow2 image or a named Hydra-like custom image. The PXE/NICo workflow remains available separately. No BMC operation, NICo registration, disk wipe, physical installation, or GPU qualification was performed.
+This is an installer ISO, not a preinstalled raw/qcow2 image or a named Hydra-like custom image. A separate Packer qcow2 candidate exists for VM/cloud use with a first-boot NVIDIA installer service. The PXE/NICo workflow remains available separately. No BMC operation, NICo registration, disk wipe, physical installation, or GPU qualification was performed.

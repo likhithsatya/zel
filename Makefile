@@ -17,7 +17,7 @@ custom-iso:
 	bash scripts/build-custom-iso.sh
 
 smoke-custom-iso:
-	bash scripts/smoke-test-custom-iso.sh artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso
+	bash scripts/smoke-test-custom-iso.sh artifacts/digipowerx-b300-ubuntu-24.04.3-r620.iso
 
 report:
 	python scripts/generate_project_report.py

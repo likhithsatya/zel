@@ -1,6 +1,6 @@
 # Project and Conversation History
 
-Updated: 2026-11-06
+Updated: 2026-11-09
 
 This document records the decisions and work completed in the conversation. It is a project summary, not a verbatim transcript. No passwords, private keys, API tokens, BMC credentials, or NICo certificates are recorded here.
 
@@ -48,6 +48,7 @@ The POC did not document the install disk serial or SSH public key. The 3.44 TB 
 - Added an Autoinstall late-command that installs the NVIDIA software from Ubuntu/NVIDIA package repositories. The ISO installation needs network access to those repositories.
 - The checked-in `config/versions.yml` leaves ordinary GPU installation gates closed. The custom ISO contains a separate image-local config copy with the gates open so this ISO installs the requested candidate stack.
 - Added a self-hosted GitHub Actions custom ISO workflow labelled `image-builder`, plus a QEMU/OVMF smoke-test script.
+- Added a DigiPowerX dynamic login MOTD to the custom ISO and Packer qcow2, with OS/kernel, uptime, CPU, memory, root filesystem, address, and best-effort GPU status.
 - The custom ISO was built and smoke-tested locally; the self-hosted GitHub image workflow is configured but has not been run.
 - Added release chunking and reassembly because GitHub limits individual release assets to under 2 GiB. The release includes two numbered ISO parts, the SHA256 sidecar, manifest, and reassembly helper.
 - Added `scripts/generate_project_report.py` and a `make report` target, producing an editable v1 report and a two-page architecture PDF; the PDF diagram distinguishes the custom ISO flow from the reference NICo PXE flow.
@@ -58,7 +59,7 @@ The POC did not document the install disk serial or SSH public key. The 3.44 TB 
 - Inspected the user's public DigiPowerX Packer repository and HashiCorp's official QEMU builder docs. Chose a separate qcow2 output so the existing custom ISO/PXE artifacts remain unchanged.
 - Added `packer/ubuntu-qemu-b300/` with a QEMU Packer template using a date-pinned Ubuntu Noble cloud image. The cloud image manifest signature was verified with Ubuntu's cloud-image keyring; its SHA256 is pinned in `config/versions.yml`.
 - Added a temporary NoCloud Packer account, scoped payload config, base package provisioning, cleanup, qcow2 checksum/manifest, and a first-boot systemd service for the NVIDIA candidate stack. Installing the full NVIDIA stack inside Packer repeatedly disconnected the SSH communicator during dpkg, so the stack install is deferred to first boot.
-- Built a local 64-GiB virtual qcow2 at `/tmp/nvidia-b300-packer-qemu/nvidia-b300-ubuntu-24.04.3-r620.qcow2` (about 724 MiB allocated) and staged a copy under `artifacts/packer-qemu-b300/`. `qemu-img check` reports no errors and the sidecar checksum verifies (`a4bc6b03cc1e3a17392c21ca220cb95a70b4f57ea3bee16b1b3330c834ca7f98`).
+- Built a local 64-GiB virtual qcow2 at `/tmp/nvidia-b300-packer-qemu-digipowerx/nvidia-b300-ubuntu-24.04.3-r620.qcow2` (about 765 MiB allocated) and staged a copy under `artifacts/packer-qemu-b300/`. `qemu-img check` reports no errors and the sidecar checksum verifies; this rebuild includes the DigiPowerX MOTD.
 - The qcow2 first-boot cloud-init/NVIDIA service has not been successfully boot-tested; an attempted QEMU first-boot smoke test did not establish SSH. The qcow2 is a VM/cloud artifact, not a B300 bare-metal image, and its NVIDIA package installation remains unvalidated.
 
 ## NVIDIA Candidate Stack
@@ -79,20 +80,19 @@ A previous R595 candidate was also researched: driver/FM `595.112.07` and CUDA 1
 
 ## Artifacts
 
-- Custom installer ISO: [`artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso`](../artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso).
-- ISO checksum file: [`artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.sha256`](../artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.sha256).
-- ISO manifest: [`artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.manifest.json`](../artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.manifest.json).
+- DigiPowerX custom installer ISO: `digipowerx-b300-ubuntu-24.04.3-r620.iso`, published in a separate release.
 - NICo PXE bundle: [`artifacts/nvidia-b300-pxe-ubuntu-24.04.3.tar.gz`](../artifacts/nvidia-b300-pxe-ubuntu-24.04.3.tar.gz).
-- Packer/QEMU qcow2 candidate: [`artifacts/packer-qemu-b300/nvidia-b300-ubuntu-24.04.3-r620.qcow2`](../artifacts/packer-qemu-b300/nvidia-b300-ubuntu-24.04.3-r620.qcow2), with sidecar hash and manifest; SHA256 `a4bc6b03cc1e3a17392c21ca220cb95a70b4f57ea3bee16b1b3330c834ca7f98`.
-- Public GitHub Release: [b300-ubuntu-24.04.3-r620-20261106](https://github.com/likhithsatya/zel/releases/tag/b300-ubuntu-24.04.3-r620-20261106), containing the two ISO parts and reassembly/checksum files.
+- DigiPowerX Packer/QEMU qcow2 candidate: [`artifacts/packer-qemu-b300/nvidia-b300-ubuntu-24.04.3-r620.qcow2`](../artifacts/packer-qemu-b300/nvidia-b300-ubuntu-24.04.3-r620.qcow2), with sidecar hash and manifest; SHA256 `7bcdc70590ff703bfbb63af356fbc26b6f189c20a550fde8a75db10b1d2257b2`.
+- Packer/QEMU first-boot candidate prerelease: [b300-qemu-qcow2-firstboot-candidate-20261109](https://github.com/likhithsatya/zel/releases/tag/b300-qemu-qcow2-firstboot-candidate-20261109), containing qcow2, SHA256, and manifest.
+- DigiPowerX installer ISO release: [digipowerx-b300-custom-ubuntu-24.04.3-r620-20261109](https://github.com/likhithsatya/zel/releases/tag/digipowerx-b300-custom-ubuntu-24.04.3-r620-20261109), containing the split ISO and reassembly/checksum files.
 - Editable build report: [`docs/B300-CUSTOM-OS-V1-REPORT.md`](B300-CUSTOM-OS-V1-REPORT.md).
 - Architecture PDF: [`docs/B300-CUSTOM-OS-V1-REPORT.pdf`](B300-CUSTOM-OS-V1-REPORT.pdf).
 
-The current ISO SHA256 is `be8d2af941a072a5428c0ab8ed0c49f3eb248672542f56b4127d2ae557db52f9`. The `artifacts/` directory is git-ignored to keep multi-gigabyte binaries out of Git history; the ISO is published in the GitHub Release above.
+The DigiPowerX ISO SHA256 is `3f3ebbaaea3a4133d38f1635d13e0cb74e9c954a97ae25e0bbabec86ac3947ae`. The `artifacts/` directory is git-ignored to keep large binaries out of Git history.
 
 ## Validation Performed
 
-- `make validate test`: passed 11 unit tests, configuration validation, and shell syntax checks after adding the Packer path.
+- `make validate test`: passed 13 unit tests, configuration validation, and shell syntax checks after adding DigiPowerX branding and generic ISO reassembly coverage.
 - `make report`: generated the editable Markdown and two-page PDF successfully; both pages were visually inspected.
 - `git diff --check`: passed.
 - Ubuntu checksum manifest signature and ISO checksum: verified.
@@ -133,4 +133,4 @@ The QEMU test is only a UEFI boot smoke test. It did not complete an Ubuntu inst
 
 ## Repository State
 
-The original ISO/report source is committed and pushed to `main`; the separate Packer path is currently uncommitted. The repository is public as of 2026-11-09. The custom installer ISO is in a GitHub Release. The qcow2 is a local ignored artifact; its first-boot installer has not been tested or published.
+The original ISO/report source is committed and pushed to `main`. The DigiPowerX banner/Packer updates are in the current worktree and are not yet committed. The repository is public as of 2026-11-09. The DigiPowerX installer ISO and updated qcow2 are published in separate GitHub prereleases. The qcow2 first-boot NVIDIA install remains untested. Generated images are ignored by Git.

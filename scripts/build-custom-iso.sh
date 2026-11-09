@@ -55,5 +55,5 @@ else
 fi
 printf '%s  %s\n' "$expected_sha" "$source_iso" | sha256sum --check
 
-output_iso=${OUTPUT_ISO:-"$repo_root/artifacts/nvidia-b300-ubuntu-${version}-r620.iso"}
+output_iso=${OUTPUT_ISO:-"$repo_root/artifacts/digipowerx-b300-ubuntu-${version}-r620.iso"}
 python3 "$repo_root/scripts/build_custom_iso.py" --source-iso "$source_iso" --output-iso "$output_iso"
