@@ -4,6 +4,10 @@ ubuntu:
   iso_sha256: c3514bf0056180d09376462a7a1b4f213c1d6e8ea67fae5c25099c6fd3d8274b
   kernel_reference: "6.8.0-147-generic"
   kernel_policy: distro-managed
+  packer_qemu_base:
+    release_directory: "20250805"
+    url: https://cloud-images.ubuntu.com/releases/noble/release-20250805/ubuntu-24.04-server-cloudimg-amd64.img
+    sha256: 834af9cd766d1fd86eca156db7dff34c3713fbbc7f5507a3269be2a72d2d1820
 gpu_stack:
   enabled: false
   installation_authorized: false

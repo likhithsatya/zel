@@ -53,6 +53,14 @@ The POC did not document the install disk serial or SSH public key. The 3.44 TB 
 - Added `scripts/generate_project_report.py` and a `make report` target, producing an editable v1 report and a two-page architecture PDF; the PDF diagram distinguishes the custom ISO flow from the reference NICo PXE flow.
 - Added a project history of operational blockers and NICo status to [README.md](../README.md).
 
+### Separate Packer/QEMU Image
+
+- Inspected the user's public DigiPowerX Packer repository and HashiCorp's official QEMU builder docs. Chose a separate qcow2 output so the existing custom ISO/PXE artifacts remain unchanged.
+- Added `packer/ubuntu-qemu-b300/` with a QEMU Packer template using a date-pinned Ubuntu Noble cloud image. The cloud image manifest signature was verified with Ubuntu's cloud-image keyring; its SHA256 is pinned in `config/versions.yml`.
+- Added a temporary NoCloud Packer account, scoped payload config, base package provisioning, cleanup, qcow2 checksum/manifest, and a first-boot systemd service for the NVIDIA candidate stack. Installing the full NVIDIA stack inside Packer repeatedly disconnected the SSH communicator during dpkg, so the stack install is deferred to first boot.
+- Built a local 64-GiB virtual qcow2 at `/tmp/nvidia-b300-packer-qemu/nvidia-b300-ubuntu-24.04.3-r620.qcow2` (about 724 MiB allocated) and staged a copy under `artifacts/packer-qemu-b300/`. `qemu-img check` reports no errors and the sidecar checksum verifies (`a4bc6b03cc1e3a17392c21ca220cb95a70b4f57ea3bee16b1b3330c834ca7f98`).
+- The qcow2 first-boot cloud-init/NVIDIA service has not been successfully boot-tested; an attempted QEMU first-boot smoke test did not establish SSH. The qcow2 is a VM/cloud artifact, not a B300 bare-metal image, and its NVIDIA package installation remains unvalidated.
+
 ## NVIDIA Candidate Stack
 
 The ISO currently targets:
@@ -75,6 +83,7 @@ A previous R595 candidate was also researched: driver/FM `595.112.07` and CUDA 1
 - ISO checksum file: [`artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.sha256`](../artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.sha256).
 - ISO manifest: [`artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.manifest.json`](../artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso.manifest.json).
 - NICo PXE bundle: [`artifacts/nvidia-b300-pxe-ubuntu-24.04.3.tar.gz`](../artifacts/nvidia-b300-pxe-ubuntu-24.04.3.tar.gz).
+- Packer/QEMU qcow2 candidate: [`artifacts/packer-qemu-b300/nvidia-b300-ubuntu-24.04.3-r620.qcow2`](../artifacts/packer-qemu-b300/nvidia-b300-ubuntu-24.04.3-r620.qcow2), with sidecar hash and manifest; SHA256 `a4bc6b03cc1e3a17392c21ca220cb95a70b4f57ea3bee16b1b3330c834ca7f98`.
 - Public GitHub Release: [b300-ubuntu-24.04.3-r620-20261106](https://github.com/likhithsatya/zel/releases/tag/b300-ubuntu-24.04.3-r620-20261106), containing the two ISO parts and reassembly/checksum files.
 - Editable build report: [`docs/B300-CUSTOM-OS-V1-REPORT.md`](B300-CUSTOM-OS-V1-REPORT.md).
 - Architecture PDF: [`docs/B300-CUSTOM-OS-V1-REPORT.pdf`](B300-CUSTOM-OS-V1-REPORT.pdf).
@@ -83,12 +92,14 @@ The current ISO SHA256 is `be8d2af941a072a5428c0ab8ed0c49f3eb248672542f56b4127d2
 
 ## Validation Performed
 
-- `make validate test`: passed 8 unit tests, configuration validation, and shell syntax checks after report generation was added.
+- `make validate test`: passed 11 unit tests, configuration validation, and shell syntax checks after adding the Packer path.
 - `make report`: generated the editable Markdown and two-page PDF successfully; both pages were visually inspected.
 - `git diff --check`: passed.
 - Ubuntu checksum manifest signature and ISO checksum: verified.
 - Custom ISO checksum: verified using its sidecar.
 - ISO split/reassembly round-trip test: passed with checksum preservation.
+- Packer 1.16.2 QEMU template `init`, `fmt`, and `validate`: passed.
+- Packer qcow2 build: completed with first-boot stack installation mode; `qemu-img check` and image checksum passed.
 - `make smoke-custom-iso`: passed. QEMU with OVMF reached the Ubuntu 24.04.3 kernel and the local Autoinstall arguments. No virtual disk was attached.
 - Editor diagnostics: no errors reported at the last diagnostics run.
 
@@ -98,12 +109,13 @@ The QEMU test is only a UEFI boot smoke test. It did not complete an Ubuntu inst
 
 - No BMC operation, NICo registration, disk wipe, physical installation, or server reboot was performed.
 - No full VM installation/package-download test was performed. The B300 VLAN's access to Ubuntu/NVIDIA repositories is unverified; interrupted package downloads can leave an incomplete install.
+- The Packer qcow2's first-boot cloud-init/user-data path and NVIDIA install service have not been successfully tested; provide first-boot user data before launching the image.
 - The exact Supermicro OEM driver qualification and Secure Boot/MOK enrollment procedure remain unverified.
 - The NICo tracker says BIOS setup credentials are held by NICo Vault and lock-down settings were applied. Authorized password retrieval and approval of the selected ISO boot path remain to be confirmed; no lock-down bypass is authorized.
 - The tracker reports brief BMC network drops. A resulting interruption to BMC virtual-media boot is a plausible risk, not a confirmed failure; verify media-session behavior if using that path.
 - A rollback/recovery plan has not been agreed or tested. Define console/recovery access, an approved reimage/NICo reprovision route, and how to return the host to NICo `Ready` if installation fails.
 - Likhith and Sai Rishith are proposed supervised test operators; Chakra/machine-owner approval and the actual date/window are pending.
-- The repository and release are private; only authorized collaborators can view/download them. The custom self-hosted image workflow has not been run on GitHub; its runner should remain isolated and restricted to trusted maintainers.
+- The repository is public as of 2026-11-09; POC references contain internal IP/MAC details. The custom self-hosted image workflow has not been run on GitHub; its runner should remain isolated and restricted to trusted maintainers.
 - The custom ISO bypasses NICo during boot. The POC machine already has NICo state/instance records; coordinate with the NICo owner and reconcile those records after any reinstall.
 - Fresh written disk-wipe approval and an install window are still required. Supervised console interaction is needed to select the intended disk.
 - The current image installs the R620 candidate; do not describe it as GPU-validated or production-qualified. GPU checks must run on the physical B300 after installation.
@@ -121,4 +133,4 @@ The QEMU test is only a UEFI boot smoke test. It did not complete an Ubuntu inst
 
 ## Repository State
 
-The source and documentation are committed and pushed to `main`. The ISO and report are published as GitHub Release assets. The repository and release are private, so recipients need collaborator access. The original ISO and PXE archive remain ignored by Git so multi-gigabyte binaries do not enter Git history.
+The original ISO/report source is committed and pushed to `main`; the separate Packer path is currently uncommitted. The repository is public as of 2026-11-09. The custom installer ISO is in a GitHub Release. The qcow2 is a local ignored artifact; its first-boot installer has not been tested or published.

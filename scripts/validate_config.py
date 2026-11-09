@@ -26,6 +26,9 @@ def validate() -> None:
 
     if versions.get("ubuntu", {}).get("version") != "24.04.3":
         raise ValueError("Ubuntu version must remain pinned to the POC's 24.04.3")
+    qemu_base = versions.get("ubuntu", {}).get("packer_qemu_base", {})
+    if qemu_base.get("release_directory") != "20250805" or qemu_base.get("sha256") != "834af9cd766d1fd86eca156db7dff34c3713fbbc7f5507a3269be2a72d2d1820":
+        raise ValueError("Packer QEMU base image must remain pinned to the verified Ubuntu cloud image")
     if not re.fullmatch(r"\d+\.\d+\.\d+", str(versions.get("artifact_version", ""))):
         raise ValueError("artifact_version must use MAJOR.MINOR.PATCH")
     gpu_stack = versions.get("gpu_stack", {})

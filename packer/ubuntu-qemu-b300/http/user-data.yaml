@@ -1,0 +1,30 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: b300-qemu-image
+    username: packer
+    password: __BUILD_PASSWORD_HASH__
+  ssh:
+    install-server: true
+    allow-pw: true
+    authorized-keys: []
+  network:
+    version: 2
+    ethernets:
+      primary:
+        match:
+          name: "en*"
+        dhcp4: true
+        dhcp6: false
+  storage:
+    layout:
+      name: direct
+  packages: __BASE_PACKAGES__
+  late-commands:
+    - curtin in-target --target=/target -- systemctl enable ssh
+    - curtin in-target --target=/target -- sh -c 'printf "%s\n" "packer ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/packer && chmod 0440 /etc/sudoers.d/packer'
+  shutdown: reboot

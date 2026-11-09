@@ -142,6 +142,13 @@ class BundleTests(unittest.TestCase):
             )
             self.assertEqual(restored.read_bytes(), payload)
 
+    def test_release_reassembler_avoids_bash4_and_gnu_only_commands(self):
+        source = (ROOT / "scripts/assemble-release-iso.sh").read_text(encoding="utf-8")
+        self.assertNotIn("mapfile", source)
+        self.assertNotIn("realpath", source)
+        self.assertIn("shasum -a 256", source)
+        self.assertIn("sha256sum", source)
+
     def test_project_report_generates_pdf_and_editable_markdown(self):
         with tempfile.TemporaryDirectory() as temporary:
             output_dir = Path(temporary)

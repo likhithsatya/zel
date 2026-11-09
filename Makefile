@@ -1,4 +1,4 @@
-.PHONY: validate test bundle-template image custom-iso smoke-custom-iso report
+.PHONY: validate test bundle-template image custom-iso smoke-custom-iso report packer-qemu-validate packer-qemu
 
 validate:
 	python scripts/validate_config.py
@@ -21,3 +21,9 @@ smoke-custom-iso:
 
 report:
 	python scripts/generate_project_report.py
+
+packer-qemu-validate:
+	python scripts/build_packer_qemu.py --validate-only
+
+packer-qemu:
+	python scripts/build_packer_qemu.py

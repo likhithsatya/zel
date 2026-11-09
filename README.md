@@ -19,9 +19,11 @@ The guide/report also document Supermicro-specific Redfish behavior and NICo ima
 - `.github/workflows/`: configuration validation, PXE bundle packaging, and self-hosted custom ISO builds.
 - `tests/`: bundle, custom ISO, release reassembly, and report-generation tests.
 
-The PXE archive contains the official Ubuntu kernel, initrd, live-server ISO, iPXE entry, seed template, helper scripts, and checksums. Separately, `make custom-iso` builds `artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso`, a bootable UEFI installer ISO with an interactive identity/disk/SSH setup and an Autoinstall late-command that installs the pinned NVIDIA driver, Fabric Manager, and CUDA. It is an installer ISO, not a preinstalled raw/qcow2 disk image. The NVIDIA/Ubuntu package repositories must be reachable during installation. Packer is not used because the documented deployment installs the official Ubuntu live-server system rather than baking a VM disk.
+The PXE archive contains the official Ubuntu kernel, initrd, live-server ISO, iPXE entry, seed template, helper scripts, and checksums. Separately, `make custom-iso` builds `artifacts/nvidia-b300-ubuntu-24.04.3-r620.iso`, a bootable UEFI installer ISO with an interactive identity/disk/SSH setup and an Autoinstall late-command that installs the pinned NVIDIA driver, Fabric Manager, and CUDA. It is an installer ISO, not a preinstalled raw/qcow2 disk image. The NVIDIA/Ubuntu package repositories must be reachable during installation.
 
-The GitHub repository and release are private; only repository collaborators can access them. Add each intended tester (including Chakra and Rishith) as a collaborator before sharing the release link. Keep the self-hosted `image-builder` runner isolated and restrict its use to trusted maintainers/workflows.
+For a separate Packer/QEMU VM/cloud artifact, `make packer-qemu-validate` validates the builder and `make packer-qemu` creates `artifacts/packer-qemu-b300/nvidia-b300-ubuntu-24.04.3-r620.qcow2`. A local 64-GiB qcow2 was built and passed `qemu-img check`; its SHA256 is recorded in the sidecar. It is a generalized VM image, not a bare-metal installer, and requires cloud-init user data on first boot to create the consumer account/SSH access. The NVIDIA candidate stack is installed by an enabled systemd first-boot service, not during the Packer build; that service has not yet been exercised in a VM. The temporary Packer build account is password-cleared/locked and removed from sudo before finalization. The build needs network access to Ubuntu/NVIDIA repositories on first boot.
+
+The GitHub repository is public as of 2026-11-09. Its POC documents include internal IP addresses and the B300 MAC; confirm that public exposure is approved. Keep the self-hosted `image-builder` runner isolated and restrict its workflows to trusted maintainers.
 
 ## Local use
 
@@ -35,6 +37,7 @@ make bundle-template
 make custom-iso
 make smoke-custom-iso
 make report
+make packer-qemu-validate
 ```
 
 `make custom-iso` verifies Ubuntu's signed media manifest and ISO checksum, then remasters the source ISO while preserving its BIOS/UEFI boot catalog. `make smoke-custom-iso` boots the result under QEMU/OVMF with no disk attached and checks the kernel and local Autoinstall arguments. `scripts/split-release-iso.sh` prepares sub-2-GiB release parts plus checksum, manifest, and reassembly script because GitHub limits individual release assets to less than 2 GiB. The GitHub image workflow requires a self-hosted runner labelled `image-builder`, with `xorriso`, `bsdtar`, `gpgv`, `openssl`, QEMU, OVMF, the Ubuntu archive keyring, and enough free space for the source, remastered ISO, and release parts. Configuration validation remains on a separate hosted runner.

@@ -1,0 +1,13 @@
+#cloud-config
+users:
+  - default
+  - name: ${build_user}
+    gecos: Temporary Packer build account
+    groups: [sudo]
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    shell: /bin/bash
+    lock_passwd: false
+    passwd: "${build_password_hash}"
+ssh_pwauth: true
+disable_root: true
+preserve_hostname: false
